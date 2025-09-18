@@ -2481,9 +2481,8 @@ class MVLSlabSet(VaspInputSet):
             if self.set_mix:
                 updates |= {"AMIN": 0.01, "AMIX": 0.2, "BMIX": 0.001}
             if self.auto_dipole and self.structure is not None:
-                weights = [struct.species.weight for struct in self.structure]
-                center_of_mass = np.average(self.structure.frac_coords, weights=weights, axis=0).tolist()
-                updates |= {"IDIPOL": 3, "LDIPOL": True, "DIPOL": center_of_mass}
+                auto_dipole_updates = _get_auto_dipole_updates(self.structure)
+                updates |= auto_dipole_updates
         return updates
 
     @property
@@ -3637,6 +3636,11 @@ def _get_nedos(vasprun: Vasprun | None, dedos: float) -> int:
     emin = min(eigs.min() for eigs in vasprun.eigenvalues.values())
     return int((emax - emin) / dedos)
 
+def _get_auto_dipole_updates(structure):
+    weights = [struct.species.weight for struct in structure]
+    center_of_mass = np.average(structure.frac_coords, weights=weights, axis=0).tolist()
+    auto_dipole_updates = {"IDIPOL": 3, "LDIPOL": True, "DIPOL": center_of_mass}
+    return auto_dipole_updates
 
 def auto_kspacing(bandgap: float | None, bandgap_tol: float) -> float:
     """Set kspacing based on the bandgap."""
