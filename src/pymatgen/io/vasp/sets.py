@@ -1728,6 +1728,91 @@ class MatPESStaticSet(VaspInputSet):
 
 
 @dataclass
+class SlabPESStaticSet(VaspInputSet):
+    """Create input files for a SlabPES static calculation.
+
+    The goal of SlabPES is to generate potential energy surface data for charged slabs. To maintain
+    compatiblity with MatPES, most INCAR settings remain the same. 
+    
+    GGA_COMPAT=False is technically a consistency-breaking change, but the change in energy is small (< 1 meV).
+
+    To create a dataset with external electric fields applied, the dipole correction must be enabled.
+    Auto-dipole applies the correction in the z-direction, with DIPOL set to the center of mass.
+
+    Args:
+        structure (Structure): The Structure to create inputs for. If None, the input
+            set is initialized without a Structure but one must be set separately before
+            the inputs are generated.
+        xc_functional ('R2SCAN'|'PBE'): Exchange-correlation functional to use. Defaults to 'PBE'.
+        auto_dipole (bool): Apply a dipole correction in the z-direction, with DIPOL set to the structure center of mass.
+        **kwargs: Keywords supported by VaspInputSet.
+    """
+
+    xc_functional: Literal["R2SCAN", "PBE"] = "PBE"
+    prev_incar: dict | str | None = None
+    auto_dipole : bool = False
+    # These are parameters that we will inherit from any previous INCAR supplied. They are mostly parameters related
+    # to symmetry and convergence set by Custodian when errors are encountered in a previous run. Given that our goal
+    # is to have a strictly homogeneous PES data, all other parameters (e.g., ISMEAR, ALGO, etc.) are not inherited.
+    inherit_incar: tuple[str, ...] | bool = (  # type: ignore[assignment]
+        "LPEAD",
+        "NGX",
+        "NGY",
+        "NGZ",
+        "SYMPREC",
+        "IMIX",
+        "LMAXMIX",
+        "KGAMMA",
+        "ISYM",
+        "NCORE",
+        "NPAR",
+        "NELMIN",
+        "IOPT",
+        "NBANDS",
+        "KPAR",
+        "AMIN",
+        "NELMDL",
+        "BMIX",
+        "AMIX_MAG",
+        "BMIX_MAG",
+    )
+    CONFIG = _load_yaml_config("SlabPESStaticSet")
+
+    def __post_init__(self) -> None:
+        """Validate inputs."""
+        super().__post_init__()
+        valid_xc_functionals = ("R2SCAN", "PBE", "PBE+U")
+        if self.xc_functional.upper() not in valid_xc_functionals:
+            raise ValueError(
+                f"Unrecognized xc_functional='{self.xc_functional}'. "
+                f"Supported exchange-correlation functionals are {valid_xc_functionals}"
+            )
+
+        default_potcars = self.CONFIG["PARENT"].replace("PBE", "PBE_").replace("Base", "")  # PBE64Base -> PBE_64
+        self.user_potcar_functional = self.user_potcar_functional or default_potcars
+        if self.user_potcar_functional.upper() != default_potcars:
+            warnings.warn(
+                f"{self.user_potcar_functional=} is inconsistent with the recommended {default_potcars}.",
+                stacklevel=2,
+            )
+
+        if self.xc_functional.upper() == "R2SCAN":
+            self._config_dict["INCAR"].update({"METAGGA": "R2SCAN", "ALGO": "ALL"})
+            self._config_dict["INCAR"].pop("GGA", None)
+        if self.xc_functional.upper().endswith("+U"):
+            self._config_dict["INCAR"]["LDAU"] = True
+
+    @property
+    def incar_updates(self) -> dict[str, Any]:
+        updates = {}
+        if self.auto_dipole and self.structure is not None:
+            auto_dipole_updates = _get_auto_dipole_updates(self.structure)
+            auto_dipole_updates |= {'LVACPOTAV': True} # to easily calculate workfunction
+            updates |= auto_dipole_updates
+        return updates
+
+
+@dataclass
 class MPScanStaticSet(MPScanRelaxSet):
     """Create input files for a static calculation using the accurate and numerically
     efficient r2SCAN variant of the Strongly Constrained and Appropriately Normed

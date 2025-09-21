@@ -5,20 +5,24 @@ PARENT: PBE64Base
 INCAR:
   ALGO: Normal # Normal for PBE, ALL for R2SCAN, included to have some reasonable default
   EDIFF: 1.e-05
-  ENAUG: 1360
+  EFERMI: MIDGAP
   ENCUT: 680
   GGA: PE # change R2SCAN to PBE as default
+  GGA_COMPAT: False # breaking change vs MatPES, but change in energy < 0.1 meV
   ISMEAR: 0 # change from 2 to 0, included to have some reasonable default
   ISPIN: 2
   KSPACING: 0.22 # included to have some reasonable default
   LAECHG: True
   LASPH: True
+  LELF: True
   LCHARG: True
   LMIXTAU: True
+  LOCPOT: True
   LORBIT: 11
   LREAL: False
-  LWAVE: False
+  LWAVE: True
   NELM: 200
+  NEDOS: 2000
   NSW: 0 # static calculation
   PREC: Accurate
   SIGMA: 0.05 # change from 0.02 to 0.05, included to have some reasonable default
