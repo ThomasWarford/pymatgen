@@ -20,6 +20,7 @@ INCAR:
   LOCPOT: True
   LORBIT: 11
   LREAL: False
+  LVTOT: True
   LWAVE: True
   NELM: 200
   NEDOS: 2000
