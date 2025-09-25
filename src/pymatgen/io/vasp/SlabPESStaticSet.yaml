@@ -9,6 +9,7 @@ INCAR:
   ENCUT: 680
   GGA: PE # change R2SCAN to PBE as default
   GGA_COMPAT: False # breaking change vs MatPES, but change in energy < 0.1 meV
+  ISEARCH: 1 # only relevant when ALGO=All (r2SCAN calcs)
   ISMEAR: 0 # change from 2 to 0, included to have some reasonable default
   ISPIN: 2
   KSPACING: 0.22 # included to have some reasonable default
