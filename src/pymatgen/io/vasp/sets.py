@@ -1781,7 +1781,7 @@ class SlabPESStaticSet(VaspInputSet):
     def __post_init__(self) -> None:
         """Validate inputs."""
         super().__post_init__()
-        valid_xc_functionals = ("R2SCAN", "PBE", "PBE+U")
+        valid_xc_functionals = ("R2SCAN", "PBE",)
         if self.xc_functional.upper() not in valid_xc_functionals:
             raise ValueError(
                 f"Unrecognized xc_functional='{self.xc_functional}'. "
@@ -1799,8 +1799,6 @@ class SlabPESStaticSet(VaspInputSet):
         if self.xc_functional.upper() == "R2SCAN":
             self._config_dict["INCAR"].update({"METAGGA": "R2SCAN", "ALGO": "ALL"})
             self._config_dict["INCAR"].pop("GGA", None)
-        if self.xc_functional.upper().endswith("+U"):
-            self._config_dict["INCAR"]["LDAU"] = True
 
     @property
     def incar_updates(self) -> dict[str, Any]:
