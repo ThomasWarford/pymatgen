@@ -2030,6 +2030,7 @@ class Outcar:
         - read_piezo_tensor
         - read_pseudo_zval
         - read_table_pattern
+        - read_vacuum_potential
 
     Attributes:
         magnetization (tuple[dict[str, float]]): Magnetization on each ion, e.g.
@@ -3733,6 +3734,32 @@ class Outcar:
 
         self.data["fermi_contact_shift"] = fc_shift_table
 
+    def read_vacuum_potentials(
+        self,
+        reverse: bool = True,
+        terminate_on_match: bool = True,
+    ) -> None:
+        """Read the vacuum potentials. (See LVACPOTAV INCAR tag. Note IDIPOL must be 1-3 for potentials to be output.)
+
+        Args:
+            reverse (bool): Whether to start from end of OUTCAR. Defaults to True.
+            terminate_on_match (bool): Whether to terminate once match is found. Defaults to True.
+
+        Renders accessible from self.data:
+            vacuum_potential_upper (float): Upper vacuum potential
+            vacuum_potential_lower (float): Lower vacuum potential
+        """        
+        self.read_pattern(
+            {"vacuum_potentials": r"vacuum level on the upper side and lower side of the slab\s+([\d\.\-]+)\s+([\d\.\-]+)"},
+            reverse=reverse,
+            terminate_on_match=terminate_on_match,
+            postprocess=float,            
+        )
+        vacuum_potentials = self.data.get("vacuum_potentials", None) # upper, lower
+        if vacuum_potentials:
+            self.data['vacuum_potential_upper'] = vacuum_potentials[0][0]
+            self.data['vacuum_potential_lower'] = vacuum_potentials[0][1]
+            self.data.pop("vacuum_potentials")
 
 class VolumetricData(BaseVolumetricData):
     """Container for volumetric data that allows
@@ -3960,7 +3987,7 @@ class Chgcar(VolumetricData):
 
     def __init__(
         self,
-        poscar: Poscar | Structure,
+        structure: Poscar | Structure,
         data: dict[str, NDArray],
         data_aug: dict[str, NDArray] | None = None,
     ) -> None:
@@ -3970,6 +3997,7 @@ class Chgcar(VolumetricData):
             data: Actual data.
             data_aug: Augmentation charge data.
         """
+        poscar=structure
         # Allow Poscar or Structure to be passed
         if isinstance(poscar, Poscar):
             struct = poscar.structure
