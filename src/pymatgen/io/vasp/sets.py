@@ -1805,7 +1805,10 @@ class SlabPESStaticSet(VaspInputSet):
         updates = {}
         if self.auto_dipole and self.structure is not None:
             auto_dipole_updates = _get_auto_dipole_updates(self.structure)
-            auto_dipole_updates |= {'LVACPOTAV': True} # to easily calculate workfunction
+            auto_dipole_updates |= {
+                'LVACPOTAV': True, # to easily calculate workfunction,
+                'ISYM': 0, # vasp symmetry analysis doesn't consider electric field: this leads to fixed dipole with varying electric field!
+                }
             updates |= auto_dipole_updates
         return updates
 
