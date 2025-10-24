@@ -15,17 +15,19 @@ INCAR:
   KSPACING: 0.22 # included to have some reasonable default
   LAECHG: True
   LASPH: True
-  LCHARG: True
+  LCHARG: False
+  LCHARGH5: True
   LELF: True # restricts calculation to KPAR = 1
+  LH5: False
   LMAXMIX: 6 # per benchmark
   LMIXTAU: True
   LOCPOT: True
   LORBIT: 11
   LREAL: False # per benchmark
-  LVTOT: True
   LWAVE: True
   NELM: 200
   NEDOS: 2000
   NSW: 0 # static calculation
   PREC: Accurate
   SIGMA: 0.05 # included to have some reasonable default
+  WRT_POTENTIAL: total ionic hartree xc
