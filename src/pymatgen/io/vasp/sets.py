@@ -1095,6 +1095,7 @@ class VaspInputSet(InputGenerator, abc.ABC):
         must_inc_2: bool = True,
         custom_encut: float | None = None,
         custom_prec: str | None = None,
+        multiplier: int = 1,
     ) -> tuple:
         """
         Calculate the NGX, NGY, and NGZ values using the information available in the INCAR and POTCAR
@@ -1143,6 +1144,8 @@ class VaspInputSet(InputGenerator, abc.ABC):
 
         # TODO This only works in VASP 6.x
         _WFACT = 4 if PREC[0].lower() in {"a", "s"} else 3
+        
+        _WFACT *= multiplier
 
         def next_g_size(cur_g_size):
             g_size = int(_WFACT * cur_g_size + 0.5)
