@@ -139,6 +139,7 @@ class Slab(Structure):
         self.scale_factor = scale_factor
         self.energy = energy
         self.reorient_lattice = reorient_lattice
+        self.num_layers = len(coords) / len(oriented_unit_cell) # TODO: should probably be passed as argument, see SlabGenerator.get_slab
 
         if self.reorient_lattice:
             if coords_are_cartesian:
